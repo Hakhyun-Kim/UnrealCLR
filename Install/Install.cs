@@ -3,7 +3,27 @@ using System.Diagnostics;
 using System.IO;
 
 public static class Install {
-	private static void Main(string[] arguments) {
+    public static void DeleteDirectory(string targetDir)
+    {
+        File.SetAttributes(targetDir, FileAttributes.Normal);
+
+        string[] files = Directory.GetFiles(targetDir);
+        string[] dirs = Directory.GetDirectories(targetDir);
+
+        foreach (string file in files)
+        {
+            File.SetAttributes(file, FileAttributes.Normal);
+            File.Delete(file);
+        }
+
+        foreach (string dir in dirs)
+        {
+            DeleteDirectory(dir);
+        }
+
+        Directory.Delete(targetDir, false);
+    }
+    private static void Main(string[] arguments) {
 		Console.Title = "UnrealCLR Installation Tool";
 
 		using StreamReader consoleReader = new(Console.OpenStandardInput(8192), Console.InputEncoding, false, bufferSize: 1024);
@@ -67,8 +87,9 @@ public static class Install {
 
 				Console.WriteLine(Environment.NewLine + "Removing the previous plugin installation...");
 
-				if (Directory.Exists(Path.Combine(projectPath, "Plugins/UnrealCLR")))
-					Directory.Delete(Path.Combine(projectPath, "Plugins/UnrealCLR"), true);
+				string plugin = Path.Combine(projectPath, "Plugins/UnrealCLR");
+				if (Directory.Exists(plugin))
+					DeleteDirectory(plugin);
 
 				Console.WriteLine("Copying native source code and the runtime host of the plugin...");
 
